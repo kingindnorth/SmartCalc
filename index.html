@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculator</title>
+    <!-- Include Tailwind CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+
+<body class="bg-black text-gray-400 flex justify-center items-center h-screen">
+    <div class="mx-auto w-1/2 h-3/4">
+        <div class="py-6 bg-gray-900 rounded-2xl shadow-lg h-full">
+            <div class="mb-6 text-right text-6xl font-bold pr-6" id="result">0</div>
+            <div class="grid h-4/5 grid-cols-4 gap-6 px-6">
+                <!-- Numbers -->
+                <button class="btn btn-num bg-gray-800 hover:bg-gray-700 hover:text-black" onclick="appendToResult('7')">7</button>
+                <button class="btn btn-num bg-gray-800 hover:bg-gray-700 hover:text-black" onclick="appendToResult('8')">8</button>
+                <button class="btn btn-num bg-gray-800 hover:bg-gray-700 hover:text-black" onclick="appendToResult('9')">9</button>
+                <button id="+" class="btn btn-operator bg-gray-800 hover:bg-gray-700 hover:text-black" onclick="setOperator('+')">+</button>
+
+                <button class="btn btn-num bg-gray-800 hover:bg-gray-700 hover:text-black" onclick="appendToResult('4')">4</button>
+                <button class="btn btn-num bg-gray-800 hover:bg-gray-700 hover:text-black" onclick="appendToResult('5')">5</button>
+                <button class="btn btn-num bg-gray-800 hover:bg-gray-700 hover:text-black" onclick="appendToResult('6')">6</button>
+                <button id="-" class="btn btn-operator bg-gray-800 hover:bg-gray-700 hover:text-black" onclick="setOperator('-')">-</button>
+
+                <button class="btn btn-num bg-gray-800 hover:bg-gray-700 hover:text-black" onclick="appendToResult('1')">1</button>
+                <button class="btn btn-num bg-gray-800 hover:bg-gray-700 hover:text-black" onclick="appendToResult('2')">2</button>
+                <button class="btn btn-num bg-gray-800 hover:bg-gray-700 hover:text-black" onclick="appendToResult('3')">3</button>
+                <button id="*" class="btn btn-operator bg-gray-800 hover:bg-gray-700 hover:text-black" onclick="setOperator('*')">*</button>
+
+                <button class="btn btn-clear bg-gray-800 hover:bg-gray-700 hover:text-black" onclick="clearResult()">Clear</button>
+                <button class="btn btn-num bg-gray-800 hover:bg-gray-700 hover:text-black" onclick="appendToResult('0')">0</button>
+                <button class="btn btn-delete bg-gray-800 hover:bg-gray-700 hover:text-black" onclick="deleteLastDigit()">Delete</button>
+                <button id="/" class="btn btn-operator bg-gray-800 hover:bg-gray-700 hover:text-black" onclick="setOperator('/')">/</button>
+
+                <!-- Extra buttons -->
+                <button class="btn btn-extra text-black bg-green-600 hover:bg-green-500" onclick="cashIn()">Cash In</button>
+                <button class="btn btn-enter text-black bg-yellow-500 col-span-2 hover:bg-yellow-400" onclick="calculate()">Enter</button>
+                <button class="btn btn-extra text-black bg-red-700 hover:bg-red-600" onclick="cashOut()">Cash Out</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        let currentNumber = '';
+        let operator = '';
+        let prevNumber = '';
+        
+        // Function to update result display
+        function updateResult() {
+            document.getElementById('result').textContent = currentNumber;
+        }
+        
+        // Function to append digits to the current number
+        function appendToResult(digit) {
+            if(operator !== ''){
+            const operatorElement = document.getElementById(operator);
+            operatorElement.style.backgroundColor = ""; // Reset operator's style
+            }
+            if (currentNumber === '0') {
+                currentNumber = digit;
+            } else {
+                currentNumber += digit;
+            }
+            console.log(currentNumber)
+            updateResult();
+        }
+        
+        // Function to set the operator
+        function setOperator(op) {
+            if (operator !== '') {
+            const operatorElement = document.getElementById(operator);
+            operatorElement.style.backgroundColor = ""; // Reset operator's style
+            currentNumber = localStorage.getItem('currentNumber')
+        }
+           const data = document.getElementById(op)
+           data.style.backgroundColor = "gray";
+            operator = op;
+            prevNumber = currentNumber;
+            localStorage.setItem('currentNumber',currentNumber)
+            currentNumber = '';
+            console.log(prevNumber,currentNumber,operator,"data from setOp")
+        }
+
+        // Function to perform the calculation
+        function calculate() {
+            let result;
+            const num1 = parseFloat(prevNumber);
+            const num2 = parseFloat(currentNumber);
+            switch (operator) {
+                case '+':
+                    result = num1 + num2;
+                    break;
+                case '-':
+                    result = num1 - num2;
+                    break;
+                case '*':
+                    result = num1 * num2;
+                    break;
+                case '/':
+                    result = num1 / num2;
+                    break;
+                default:
+                    result = 'Error';
+            }
+            currentNumber = result.toString();
+            updateResult();
+        }
+        
+        // Function to clear the result
+        function clearResult() {
+            currentNumber = '0';
+            prevNumber = '';
+            operator = '';
+            updateResult();
+        }
+
+        // Function for cash in
+        function cashIn() {
+            console.log('Cash In');
+        }
+
+        // Function for cash out
+        function cashOut() {
+            console.log('Cash Out');
+        }
+
+        // Function to delete the last digit
+        function deleteLastDigit() {
+            currentNumber = currentNumber.slice(0, -1);
+            if (currentNumber === '') {
+                currentNumber = '0';
+            }
+            updateResult();
+        }
+    </script>
+</body>
+
+</html>
