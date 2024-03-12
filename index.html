@@ -8,12 +8,63 @@
     <!-- Include Tailwind CSS -->
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
+<style>
+    /* Styling for the popup */
+    .popup {
+      display: none;
+    }
+    .contact-form {
+            width: 100%;
+            padding: 20px;
+            border-radius: 5px;
+            background-color: #111;
+            transition: background-color 0.3s ease;
+        }
+
+        .contact-form:hover {
+            background-color: #222;
+        }
+
+        .contact-form input[type="text"],
+        .contact-form input[type="email"],
+        .contact-form textarea,
+        .contact-form button {
+            margin-bottom: 20px;
+            padding: 10px;
+            width: calc(100% - 20px);
+            border: 1px solid transparent;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+            color: #fff; /* Changing text color to white */
+            background-color: #444; /* Changing background color to dark gray */
+        }
+
+        .contact-form input[type="text"]:hover,
+        .contact-form input[type="email"]:hover,
+        .contact-form textarea:hover,
+        .contact-form button:hover {
+            border-color: #ffc107;
+        }
+
+        .contact-form button {
+            background-color: #ffc107;
+            color: #000;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .contact-form button:hover {
+            background-color: #ff9800;
+            color: #fff; /* Changing text color to white */
+        }
+    
+  </style>
 
 <body class="bg-black text-gray-400 flex justify-center items-center h-screen">
     <div class="mx-auto w-1/2 h-3/4">
-        <div class="py-6 bg-gray-900 rounded-2xl shadow-lg h-full">
+        <div class="py-6 bg-gray-900 border-4 border-gray-500 rounded-2xl shadow-lg h-full">
             <div class="mb-6 text-right text-6xl font-bold pr-6" id="result">0</div>
-            <div class="grid h-4/5 grid-cols-4 gap-6 px-6">
+            <div class="grid h-4/5 grid-cols-4 gap-6 px-6 py-2">
                 <!-- Numbers -->
                 <button class="btn btn-num bg-gray-800 hover:bg-gray-700 hover:text-black" onclick="appendToResult('7')">7</button>
                 <button class="btn btn-num bg-gray-800 hover:bg-gray-700 hover:text-black" onclick="appendToResult('8')">8</button>
@@ -36,12 +87,27 @@
                 <button id="/" class="btn btn-operator bg-gray-800 hover:bg-gray-700 hover:text-black" onclick="setOperator('/')">/</button>
 
                 <!-- Extra buttons -->
-                <button class="btn btn-extra text-black bg-green-600 hover:bg-green-500" onclick="cashIn()">Cash In</button>
+                <button id="showPopupBtn" class="btn btn-extra text-black bg-green-600 hover:bg-green-500" onclick="cashIn()">Cash In</button>
                 <button class="btn btn-enter text-black bg-yellow-500 col-span-2 hover:bg-yellow-400" onclick="calculate()">Enter</button>
                 <button class="btn btn-extra text-black bg-red-700 hover:bg-red-600" onclick="cashOut()">Cash Out</button>
             </div>
         </div>
     </div>
+
+     <!-- Popup Form -->
+  <div id="popupForm" class="popup fixed w-2/5 border-4 border-yellow-500 h-3/5 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-black p-8 rounded-2xl shadow-2xl">
+    <div class="flex flex-col space-y-6">
+        <h1 class="text-center font-bold text-4xl text-gray-400">Add Details</h1>
+        <div class="contact-form">
+            <input type="text" id="name" name="name" placeholder="Employee Name">
+            <input type="text" id="mode" name="mode" placeholder="Payment Mode">
+            <input type="text" id="details" name="details" placeholder="Product Details">
+            <button id="redirectButton" type="submit">Submit</button>
+        </div>
+
+    </div>
+    
+  </div>
 
     <!-- JavaScript -->
     <script>
@@ -51,6 +117,7 @@
         
         // Function to update result display
         function updateResult() {
+            console.log(document.getElementById('result'))
             document.getElementById('result').textContent = currentNumber;
         }
         
@@ -75,7 +142,13 @@
             const operatorElement = document.getElementById(operator);
             operatorElement.style.backgroundColor = ""; // Reset operator's style
             currentNumber = localStorage.getItem('currentNumber')
-        }
+            const data = document.getElementById(op)
+            data.style.backgroundColor = "gray";
+            operator = op;
+            prevNumber = currentNumber;
+            currentNumber = '';
+            console.log(prevNumber,currentNumber,operator,"data from setOp2")
+        }else{
            const data = document.getElementById(op)
            data.style.backgroundColor = "gray";
             operator = op;
@@ -83,6 +156,7 @@
             localStorage.setItem('currentNumber',currentNumber)
             currentNumber = '';
             console.log(prevNumber,currentNumber,operator,"data from setOp")
+        }
         }
 
         // Function to perform the calculation
@@ -121,11 +195,114 @@
         // Function for cash in
         function cashIn() {
             console.log('Cash In');
+            // Get the button and popup form
+            const showPopupBtn = document.getElementById('showPopupBtn');
+            const popupForm = document.getElementById('popupForm');
+
+           // show the popup
+           popupForm.style.display = 'block';
+           document.getElementById("redirectButton").addEventListener("click", function(event) {
+            event.preventDefault(); // Prevent the default form submission
+            
+            // Get the values from the form
+            var name = document.getElementById("name").value;
+            var details = document.getElementById("details").value;
+            var mode = document.getElementById("mode").value
+            var amount = document.getElementById('result').innerHTML
+            // Construct the data to be sent
+            var data = {
+                name,
+                mode,
+                details,
+                amount
+            };
+    
+            // Send the POST request using fetch API
+            fetch("http://localhost:4000/api/cash/cash-in", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.json(); // Parse the response body as JSON
+                } 
+                throw new Error('Network response was not ok.');
+            }).then(data => {
+                // Get popup form
+                const popupForm = document.getElementById('popupForm');
+
+                // hide the popup
+                popupForm.style.display = 'none';
+
+                //show message for 10 secs
+                const flash = document.getElementById('result');
+                flash.innerHTML = "Success"
+            
+            })
+            .catch(error => {
+                console.error("Error:", error);
+            });
+        });
+           
         }
 
         // Function for cash out
         function cashOut() {
             console.log('Cash Out');
+            const showPopupBtn = document.getElementById('showPopupBtn');
+            const popupForm = document.getElementById('popupForm');
+
+           // show the popup
+           popupForm.style.display = 'block';
+           document.getElementById("redirectButton").addEventListener("click", function(event) {
+            event.preventDefault(); // Prevent the default form submission
+            
+            // Get the values from the form
+            var name = document.getElementById("name").value;
+            var details = document.getElementById("details").value;
+            var mode = document.getElementById("mode").value
+            var amount = document.getElementById('result').innerHTML
+            // Construct the data to be sent
+            var data = {
+                name,
+                mode,
+                details,
+                amount
+            };
+    
+            // Send the POST request using fetch API
+            fetch("http://localhost:4000/api/cash/cash-out", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.json(); // Parse the response body as JSON
+                } 
+                throw new Error('Network response was not ok.');
+            }).then(data => {
+                // Get popup form
+                const popupForm = document.getElementById('popupForm');
+
+                // hide the popup
+                popupForm.style.display = 'none';
+
+                //show message for 10 secs
+                const flash = document.getElementById('result');
+                flash.innerHTML = "Success"
+            
+            })
+            .catch(error => {
+                console.error("Error:", error);
+            });
+        });
+
         }
 
         // Function to delete the last digit

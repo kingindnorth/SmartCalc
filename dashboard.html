@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SMART CALC</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+
+<body class="bg-black text-white">
+    <div class="flex flex-col space-y-10 items-center mx-auto p-4">
+        <h1 class="text-4xl font-bold mt-4 text-yellow-400">Smart Calc Dashboard</h1>
+        <div class="mb-4">
+            <h2 class="text-2xl font-bold text-gray-400 mb-4">Total Earnings: Rs 1000</h2>
+        </div>
+
+        
+       <a href="./calander.html" class="bg-yellow-400 text-gray-800 mt-10 py-3 px-6 rounded-full hover:bg-yellow-300">Select Date</a>
+        
+
+        <div id="messageBoxesContainer" class="flex border-4 border-yellow-500 flex-col space-y-6 bg-gray-900 w-4/5 p-6">
+           
+        </div>  
+    </div>  
+  </div>
+    
+    <script>
+        function format(date){
+            console.log(date,"formater")
+            const formattedDate = date.toLocaleDateString('en-US').split('/');
+    const mm = formattedDate[0].padStart(2, '0');
+    const dd = formattedDate[1].padStart(2, '0');
+    const yyyy = formattedDate[2];
+    const finalDate = `${mm}/${dd}/${yyyy}`;
+    return finalDate
+        }
+
+        // Get the full URL of the HTML file
+var fullURL = window.location.href;
+
+// Split the URL at the question mark to separate the base URL from the query parameters
+var parts = fullURL.split('?');
+let date
+
+// Check if there are query parameters
+if (parts.length > 1) {
+    // Get the data after the question mark
+    var dataAfterQuestionMark = parts[1];
+    console.log(dataAfterQuestionMark)
+    var parts = dataAfterQuestionMark.split('/');
+
+    // Parse the components into integers
+var day = parseInt(parts[0], 10);
+var month = parseInt(parts[1], 10) - 1; // Month is zero-based in JavaScript Date object
+var year = parseInt(parts[2], 10);
+console.log(day,month,year)
+  // Create a Date object
+ date = new Date(year, month, day);
+ var formattedDate = (date.getMonth() + 1) + '/' + date.getDate() + '/' + date.getFullYear();
+ console.log(formattedDate,"working")
+
+} else {
+    console.log("No data after '?' found in the URL.");
+    date = new Date(); 
+}
+
+
+const finalDate = format(date)  
+console.log(finalDate,"final")
+        const data = {
+            date: finalDate  //mm/dd/yyyy
+        }
+        // Send the POST request using fetch API
+        fetch("http://localhost:4000/api/cash/transactions", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.json(); // Parse the response body as JSON
+                } 
+                throw new Error('Network response was not ok.');
+            }).then(data => {
+              console.log(data)
+              //response from your API
+        const apiResponse = data.message
+
+// Get the container where message boxes will be added
+const container = document.getElementById("messageBoxesContainer");
+
+// Iterate through the API response and create message boxes
+apiResponse.forEach(response => {
+    console.log(response)
+    // Create a div element for the message box
+    const messageBox = document.createElement("div");
+    if(response.type === "cash-in"){
+        messageBox.classList.add("flex", "flex-col", "bg-gray-800", "border-2", "border-green-500", "text-gray-400", "rounded-lg", "p-4");
+    }
+    if(response.type === "cash-out"){
+        messageBox.classList.add("flex", "flex-col", "bg-gray-800", "border-2", "border-red-500", "text-gray-400", "rounded-lg", "p-4");
+    }
+    const timestamp = new Date(response.timestamp)
+    const time = format(timestamp)
+    // Create inner elements for the message box
+    const innerContent = `
+    <div class="flex justify-between">
+        <div class="px-2">
+            <p class="">Date: ${time}</p>
+            <h1 class="text-4xl">Rs ${response.amount}</h1>
+            <p>Employee Name : ${response.name}</p>
+            <p>Payment Mode : ${response.mode}</p>
+        </div>
+        <div class="">
+            <p class="">Product Details: ${response.description}</p>
+        </div>
+    </div>    
+    `;
+
+    // Set innerHTML of the message box
+    messageBox.innerHTML = innerContent;
+
+    // Append the message box to the container
+    container.appendChild(messageBox);
+});
+            
+            })
+            .catch(error => {
+                console.error("Error:", error);
+            });
+
+    </script>
+    
+
+</body>
+
+</html>
